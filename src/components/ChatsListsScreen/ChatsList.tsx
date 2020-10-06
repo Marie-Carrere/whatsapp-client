@@ -1,8 +1,7 @@
-import React from "react";
-import { chats } from "../../fixtures/db";
-import moment from "moment";
-import { List, ListItem } from "@material-ui/core";
+import React, { useState, useMemo } from "react";
 import styled from "styled-components";
+import { List, ListItem } from "@material-ui/core";
+import moment from "moment";
 
 const Container = styled.div`
   height: calc(100% - 56px);
@@ -56,27 +55,38 @@ const MessageDate = styled.div`
   font-size: 13px;
 `;
 
-const ChatsList: React.FC = () => (
-  <Container>
-    <StyledList>
-      {chats.map((chat) => (
-        <StyledListItem key={chat.id} button>
-          <ChatPicture src={chat.picture} alt={`${chat.name}'s profile`} />
-          <ChatInfo>
-            <ChatName>{chat.name}</ChatName>
-            {chat.lastMessage && (
-              <>
-                <MessageContent>{chat.lastMessage.content}</MessageContent>
-                <MessageDate>
-                  {moment(chat.lastMessage.createdAt).format("HH:mm")}
-                </MessageDate>
-              </>
-            )}
-          </ChatInfo>
-        </StyledListItem>
-      ))}
-    </StyledList>
-  </Container>
-);
+const ChatsList: React.FC = () => {
+  const [chats, setChats] = useState<any[]>([]);
+
+  // Run fetch only when the component has mounted
+  useMemo(async () => {
+    const body = await fetch(`${process.env.REACT_APP_SERVER_URL}/chats`);
+    const chats = await body.json();
+    setChats(chats);
+  }, []);
+
+  return (
+    <Container>
+      <StyledList>
+        {chats.map((chat) => (
+          <StyledListItem key={chat!.id} button>
+            <ChatPicture src={chat.picture} alt={`${chat.name}'s profile`} />
+            <ChatInfo>
+              <ChatName>{chat.name}</ChatName>
+              {chat.lastMessage && (
+                <>
+                  <MessageContent>{chat.lastMessage.content}</MessageContent>
+                  <MessageDate>
+                    {moment(chat.lastMessage.createdAt).format("HH:mm")}
+                  </MessageDate>
+                </>
+              )}
+            </ChatInfo>
+          </StyledListItem>
+        ))}
+      </StyledList>
+    </Container>
+  );
+};
 
 export default ChatsList;
